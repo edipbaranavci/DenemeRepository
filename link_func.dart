@@ -1,20 +1,40 @@
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 
-List getTranslatedLinkAsList(String link) {
-  List splitLink = link.split("/");
+// ad/proje stringi geliyo
 
-  if (checkLink(link) == true) {}
-
+List<String> getTranslatedLinkAsList(String projectPath) {
+  List<String> splitLink = projectPath.split("/");
+  splitLink[0] = splitLink[0].trim();
+  splitLink[1] = splitLink[1].trim();
   return splitLink;
 }
 
-Future<bool> checkLink(String value) async {
-  http.Response response = await http
-      .get(Uri.parse(value), headers: {"Access-Control-Allow-Origin": "*"});
+Future<int> checkUrl(String projectPath) async {
+  // ad / proje adı bitişik geldi
+  //http.Response response = await http.get(Uri.parse("github.com/$projectPath"));
+  http.Response response =
+      await http.Client().get(Uri.parse("github.com/$projectPath"));
 
   if (response.statusCode == 200) {
+    print("object 200");
+    return 200;
+  } else {
+    return 301;
+  }
+}
+
+Future<bool> checkPath(String projectPath) async {
+  http.Response response =
+      await http.Client().get(Uri.parse("github.com/$projectPath"));
+
+  if (checkUrl(projectPath) == 200) {
     return true;
+  } else if (checkUrl(projectPath) == 301) {
+    return false; //empty
   } else {
     return false;
   }
 }
+
