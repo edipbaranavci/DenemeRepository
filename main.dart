@@ -1,22 +1,22 @@
-import 'package:api_deneme/pages/repo_list.dart';
+import 'package:api_deneme/pages/home_page.dart';
 import 'package:flutter/material.dart';
 
-void main() => runApp(HomePage());
+void main() => runApp(const MainPage());
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class MainPage extends StatefulWidget {
+  const MainPage({Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _MainPageState createState() => _MainPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Api_Test_1',
-      home: RepoList(),
+      home: HomePage(),
     );
   }
 }
