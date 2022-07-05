@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:task/services/json_service.dart';
-import 'package:task/models/product.dart';
+
+import '../models/product.dart';
+import '../services/json_service.dart';
 
 String urlComputerImage =
     "https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvMzg5LWZlbGl4LTA4ODktZXllLWEuanBn.jpg";
@@ -85,7 +86,8 @@ Widget buildProductList(List<Product> cproducts, BuildContext context) {
       itemBuilder: (_, index) {
         return InkWell(
           onTap: () {
-            showCustomDialog(context, cproducts[index]);
+            showCustomDialog(
+                context, cproducts[index], Colors.blue[100 * (index + 1)]);
           },
           child: Container(
             margin: const EdgeInsets.all(10),
@@ -148,46 +150,125 @@ getImageUrl(String productCategory) {
   }
 }
 
-void showCustomDialog(BuildContext context, Product selectedProduct) {
-  showGeneralDialog(
-    context: context,
-    barrierLabel: "Barrier",
-    barrierDismissible: true,
-    barrierColor: Colors.black.withOpacity(0.5),
-    transitionDuration: const Duration(milliseconds: 500),
-    pageBuilder: (_, __, ___) {
-      return Center(
-        child: Container(
-          height: 240,
-          width: 320,
-          child: SizedBox.expand(
-              child: Column(
-            children: [
-              Text(
-                selectedProduct.name,
-                style: const TextStyle(fontSize: 20, color: Colors.black),
-              ),
-            ],
-          )),
-          margin: const EdgeInsets.symmetric(vertical: 20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(40),
-            image: DecorationImage(
-              image: NetworkImage(getImageUrl(selectedProduct.category)),
-              fit: BoxFit.fitWidth,
+Future<void> showCustomDialog(BuildContext context, Product selectedProduct,
+    Color? backgroundColor) async {
+  //burası ürünlere tıklanınca açılanyer mi?
+  //evetburayı ayırdım
+  /*
+                nedeni favoriye eklemek için setstate kullanılacak ama dialogta olmaz
+                o yüzden dialoğun içini statefull olarak ayırdım 
+        * eğer ki dialogtan sadece bir favori butonu olacak ise
+        ona göre bir ayarlama yapabilirim?
+    */
+
+  //burası ise listeleme yaparken eğer ki daha öncesinden
+  //favoriye eklediyse onu belitmek için null olmasının sebebi ise önceden eklemedi ise normal gitmesi için
+  bool? favorite = false;
+  var dialog = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                spreadRadius: 5,
-                blurRadius: 5,
-                offset: const Offset(0, 0),
-              ),
-            ],
+            insetPadding: EdgeInsets.zero,
+            titlePadding: EdgeInsets.zero,
+            actionsPadding: EdgeInsets.zero,
+            contentPadding: EdgeInsets.zero,
+            content: _DialogContent(
+              city: selectedProduct.city,
+              company: selectedProduct.company,
+              favorite: favorite,
+              name: selectedProduct.name,
+              state: selectedProduct.state,
+              backgrounColor: backgroundColor,
+            ),
+          ));
+  if (dialog is bool) {
+    if (dialog == true) {
+      print('evet denmiş => $dialog');
+    }
+    if (dialog == false) {
+      print('hayır denmiş => $dialog');
+    }
+  }
+}
+
+class _DialogContent extends StatefulWidget {
+  const _DialogContent({
+    Key? key,
+    required this.company,
+    this.backgrounColor,
+    required this.name,
+    required this.state,
+    required this.city,
+    this.favorite = false,
+  }) : super(key: key);
+
+  final String company;
+  final Color? backgrounColor;
+  final String name;
+  final String state;
+  final String city;
+  final bool? favorite;
+
+  @override
+  State<_DialogContent> createState() => _DialogContentState();
+}
+
+class _DialogContentState extends State<_DialogContent> {
+  late bool favorite;
+
+  @override
+  void initState() {
+    super.initState();
+    initFavorite();
+  }
+
+  void initFavorite() {
+    if (widget.favorite != null) {
+      favorite = widget.favorite!;
+    } else {
+      favorite = false;
+    }
+  }
+
+  void setFavorite() {
+    setState(() {
+      favorite = !favorite;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: widget.backgrounColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: Text(widget.name),
+            trailing: IconButton(
+              onPressed: () => Navigator.of(context).pop<bool>(favorite),
+              icon: const Icon(Icons.close),
+            ),
           ),
-        ),
-      );
-    },
-  );
+          ListTile(
+            title: Text(widget.company),
+            subtitle: Text('${widget.state}/${widget.city}'),
+            trailing: IconButton(
+              onPressed: setFavorite,
+              icon: Icon(
+                Icons.favorite,
+                color: favorite == true ? Colors.red : Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
